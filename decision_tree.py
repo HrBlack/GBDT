@@ -1,22 +1,29 @@
-from numpy import *
+'''
+Created on Nov 30st, 2019
+Tree-Based Regression Methods
+@author: Shihao Liu
+'''
+
+import numpy as np
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-maximum_height', default=30, type=int)
+parser.add_argument('-maximum_height', default=20, type=int)
 parser.add_argument('-tree_mode', default='cart_regression', type=str)
 
 args = parser.parse_args()
 
 class DecisionTree:
-    def __init__(self, is_leaf=False, left=None, right=None, height=0):
+    def __init__(self, is_leaf=False, left=None, right=None, height=1, split_feature=None,
+                 split_value=None, leaf_nums=0, threshold=1):
         self.left = left
         self.right = right
         self.height = height
         self.is_leaf = is_leaf
-        self.split_feature = None
-        self.split_value = None
-        self.leaf_nums = 0
-        self.threshold = 1
+        self.split_feature = split_feature
+        self.split_value = split_value
+        self.leaf_nums = leaf_nums
+        self.threshold = threshold
 
     def build_tree(self, tree, dataset):
         best_split_feature, split_value = self.choose_best_feature(tree, dataset)
@@ -32,14 +39,14 @@ class DecisionTree:
         self.build_tree(tree.right, dataset_2)
 
     def split_dataset(self, dataset, feature, value):
-        dataset_1 = dataset[nonzero(dataset[:, feature] <= value)[0]]
-        dataset_2 = dataset[nonzero(dataset[:, feature] > value)[0]]
+        dataset_1 = dataset[np.nonzero(dataset[:, feature] <= value)[0]]
+        dataset_2 = dataset[np.nonzero(dataset[:, feature] > value)[0]]
         return dataset_1, dataset_2
 
     def choose_best_feature(self, tree, dataset):
-        if len(set(dataset[-1])) == 1 or tree.height >= args.maximum_height:
+        if len(set(dataset[:, -1])) == 1 or tree.height >= args.maximum_height:
             tree.is_leaf = True
-            return None, mean(dataset[-1])
+            return None, np.mean(dataset[-1])
         maximum_gain = 0
         feature_nums = len(dataset[0]) - 1 # 最后一列默认为label
         loss = self.compute_loss(dataset, args.tree_mode)
@@ -58,28 +65,21 @@ class DecisionTree:
                     self.loss = new_loss
         if maximum_gain == 0 or maximum_gain < tree.threshold:
             tree.is_leaf = True
-            return None, mean(dataset[-1])
+            return None, np.mean(dataset[-1])
         else:
             return best_split_feature, split_value
 
     def compute_loss(self, dataset, mode):
         if mode == 'cart_regression':
-            return var(dataset[:, -1]) * shape(dataset)[0]
+            return np.var(dataset[:, -1]) * np.shape(dataset)[0]
 
-    def predict(self, tree, dataset):
-        row, col = dataset.shape
-        result = 0
-        for i in range(row):
-            features = dataset[i, :-1]
-            tmp_tree = tree
-            while not tmp_tree.is_leaf:
-                if features[tmp_tree.split_feature] <= tmp_tree.split_value:
-                    tmp_tree = tmp_tree.left
-                else:
-                    tmp_tree = tmp_tree.right
-            result += (tmp_tree.split_value - dataset[i, -1]) ** 2
-            print("***** 测试样例为{}，输出结果为{:.2f} *****".format(features, tmp_tree.split_value))
-        return result
+    def predict(self, tree, feature):
+        if tree.is_leaf:
+            return tree.split_value
+        if feature[tree.split_feature] <= tree.split_value:
+            return self.predict(tree.left, feature)
+        else:
+            return self.predict(tree.right, feature)
             
     def tree_illustration(self, tree):
         queue = [tree]
@@ -92,24 +92,28 @@ class DecisionTree:
             queue.extend([tree.left, tree.right])
 
         return
+
 class Data:
     def __init__(self, file_path):
         self.file_path = file_path
 
     def load_file(self):
-        dataset = loadtxt(self.file_path)
+        dataset = np.loadtxt(self.file_path)
         return dataset
 
 if __name__ == '__main__':
     data = Data('./bikeSpeedVsIq_train.txt')
     training_set = data.load_file()
-    cart = DecisionTree(height=1)
+    cart = DecisionTree()
     cart.build_tree(cart, training_set)
 
     # cart.tree_illustration(cart)
 
     data = Data('./bikeSpeedVsIq_test.txt')
     test_set = data.load_file()
-    loss = cart.predict(cart, test_set)
+    loss = 0
+    for example in test_set:
+        prediction = cart.predict(cart, example)
+        loss += (prediction - example[-1]) ** 2
 
     print("模型在test_set上的最终MSE值为{:.2f}".format(loss))
