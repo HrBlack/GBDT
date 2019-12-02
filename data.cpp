@@ -11,6 +11,10 @@ Data LoadData(const char* input_file)
     while (!inputs.eof())
     {
         getline(inputs, tmp_line, '\n');
+        if (tmp_line == "\0")
+        {
+            return data;
+        }
         stringstream input_line(tmp_line);
         while (input_line >> val)
         {
@@ -19,10 +23,11 @@ Data LoadData(const char* input_file)
         data.push_back(row_data);
         row_data.clear();
     }
+    inputs.close();
     return data;
 }
 
-int main()
-{
-    Data dataset = LoadData("bikeSpeedVsIq_train.txt");
-}
+// int main()
+// {
+//     Data dataset = LoadData("bikeSpeedVsIq_train.txt");
+// }
