@@ -45,11 +45,10 @@ class DecisionTree
     
     void build_tree(DecisionTree* tree, vector<vector<float>>& dataset)
     {
-        // cout<<tree->height<<endl;
-        // if (dataset.size() == 0)
-        // {
-        //     return;
-        // }
+        if (dataset.size() == 0)
+        {
+            return;
+        }
         SplitResults feature_and_val = choose_best_feature(tree, dataset);
         tree -> split_feature = feature_and_val.feature;
         tree -> split_value = feature_and_val.value;
@@ -58,16 +57,13 @@ class DecisionTree
         {
             return;
         }
-        SplitData new_dataset = split_dataset(dataset, split_feature, split_value);
+        SplitData new_dataset = split_dataset(dataset, tree -> split_feature, tree -> split_value);
         vector<vector<float>> dataset_1 = new_dataset.subdata_1;
         vector<vector<float>> dataset_2 = new_dataset.subdata_2;
-        DecisionTree left_tree(tree -> height + 1);
-        // cout<<"left_tree height = "<<left_tree.height<<endl;
-        DecisionTree right_tree(tree -> height + 1);
-        // cout<<"right_tree height = "<<right_tree.height<<endl;
 
-        tree -> left = &left_tree;
-        tree -> right = &right_tree;
+        tree -> left = new DecisionTree(tree -> height + 1);
+        tree -> right = new DecisionTree(tree -> height + 1);
+
         build_tree(tree -> left, dataset_1);
         build_tree(tree -> right, dataset_2);
         return;
@@ -75,20 +71,17 @@ class DecisionTree
 
     SplitResults choose_best_feature(DecisionTree* tree, vector<vector<float>>& dataset){
         SplitResults result;
-        unordered_set<float> set;
-        // cout<<tree -> height<<endl;
-        if (tree -> height >= tree -> maximum_height)
+        bool flag = true;
+        float value = dataset[0].back();
+        for (size_t i=0; i < dataset.size(); ++i)
         {
-            result.feature = -1;
-            result.value = compute_mean(dataset);
-            tree -> is_leaf = true;
-            return result;
+            if (dataset[i].back() != value)
+            {
+                flag = false;
+                break;
+            }
         }
-        for (size_t i = 0; i < dataset.size(); ++i)
-        {
-            set.insert(dataset[i].back());
-        }
-        if (set.size() <= 1) 
+        if (flag == true || tree -> height >= tree -> maximum_height)
         {
             result.feature = -1;
             result.value = compute_mean(dataset);
@@ -97,16 +90,15 @@ class DecisionTree
         }
         float loss = compute_loss(dataset);
         float maximum_gain = 0;
-        for (size_t i = 0; i < dataset[0].size() - 1; ++i) // 最后一列默认为label
+        for (size_t i = 0; i < dataset[0].size() - 1; ++i) // 最后一列是label
         {
             for (size_t j = 0; j < dataset.size(); ++j)
             {
                 SplitData new_dataset = split_dataset(dataset, i, dataset[j][i]);
                 vector<vector<float>> dataset_1 = new_dataset.subdata_1;
                 vector<vector<float>> dataset_2 = new_dataset.subdata_2;
-                float new_loss = (compute_loss(dataset_1) + compute_loss(dataset_2))/2;
+                float new_loss = (compute_loss(dataset_1) + compute_loss(dataset_2)) / 2;
                 float gain = loss - new_loss;
-                // cout<<"new_loss = "<<new_loss<<endl;
                 if (gain < tree -> threshold)
                 {
                     continue;
@@ -172,14 +164,10 @@ class DecisionTree
         }
         if (dataset[tree -> split_feature] <= tree -> split_value)
         {
-            // if(!tree -> left)
-            //     cout<<"!!!!!!!!!!!!!"<<endl;
             return predict(tree -> left, dataset);
         }
         else
         {
-            // if(!tree -> right)
-            //     cout<<"!!!!!!!!!!!!!"<<endl;
             return predict(tree -> right, dataset);
         }
     }
@@ -191,18 +179,10 @@ int main()
     DecisionTree tree;
     tree.build_tree(&tree, training_set);
 
-    // vector<DecisionTree> queue;
-    // while (tree.is_leaf == false)
-    // {
-        
-    //     queue.push_back(tree.left);
-    //     queue.push_back(tree.right);
-    // }
-
     Data test_set = LoadData("/Users/liushihao/Desktop/搜索引擎基础/GBDT/bikeSpeedVsIq_test.txt");
     for (size_t i = 0; i < test_set.size(); ++i)
-    {
-        cout << tree.predict(&tree, test_set[i]) << endl;
+    {   
+        cout << test_set[i].back() << '\t' << tree.predict(&tree, test_set[i]) << endl;
     }
     return 0;
 }
