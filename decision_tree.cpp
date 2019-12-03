@@ -52,7 +52,6 @@ class DecisionTree
         SplitResults feature_and_val = choose_best_feature(tree, dataset);
         tree -> split_feature = feature_and_val.feature;
         tree -> split_value = feature_and_val.value;
-        tree -> height += 1;
         if (tree -> is_leaf == true || tree -> split_feature == -1)
         {
             return;
@@ -180,9 +179,13 @@ int main()
     tree.build_tree(&tree, training_set);
 
     Data test_set = LoadData("/Users/liushihao/Desktop/搜索引擎基础/GBDT/bikeSpeedVsIq_test.txt");
+    float loss = 0;
     for (size_t i = 0; i < test_set.size(); ++i)
     {   
-        cout << test_set[i].back() << '\t' << tree.predict(&tree, test_set[i]) << endl;
+        float prediction = tree.predict(&tree, test_set[i]);
+        loss += pow((prediction - test_set[i].back()), 2); 
+        cout << test_set[i].back() << '\t' << prediction << endl;
     }
+    cout << "loss is " << loss;
     return 0;
 }
