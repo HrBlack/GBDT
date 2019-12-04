@@ -9,7 +9,6 @@ using namespace std;
 class GBDT
 {
     public:
-    // vector<DecisionTree*> forest;
     vector<shared_ptr<DecisionTree>> forest;
     vector<float> lr_list;
     float learning_rate;
@@ -30,13 +29,12 @@ void GBDT::fit(FeaturesLabels& dataset)
     double sum = 0;
     vector<float> residuals;
 
-    // 首先是所有label的平均值作为base
+    // 首先是将所有label的平均值作为base
     for (size_t i = 0; i < dataset.features.size(); ++i)
     {
         sum += dataset.labels[i];
     }
     float base_prediction = sum / dataset.features.size();
-    // DecisionTree* base_tree = new DecisionTree(1, 5, true, -1, base_prediction);
     auto base_tree = make_shared<DecisionTree>(1, 5, true, -1, base_prediction);
 
     for (size_t i = 0; i < dataset.features.size(); ++i)
@@ -46,10 +44,9 @@ void GBDT::fit(FeaturesLabels& dataset)
     lr_list.push_back(1);
     forest.push_back(base_tree);
 
-    //构建多棵树，并更新残差
+    //构建多棵树形成boosting，与此同时更新残差。
     for (int i = 0; i < iterations; ++i)
     {
-        // DecisionTree* tree = new DecisionTree(1, 5, false, -1);
         auto tree = make_shared<DecisionTree>(1, 5, false, -1);
         tree -> build_tree(tree, dataset);
         for (size_t j = 0; j < dataset.features.size(); ++j)
@@ -77,10 +74,6 @@ vector<float> GBDT::predict(FeaturesLabels& dataset)
         loss += (pred - dataset.labels[i]) * (pred - dataset.labels[i]);
         cout << dataset.labels[i] << " === " << predictions[i] << endl;
     }
-    // for (size_t i = 0; i < forest.size(); ++i)
-    // {
-    //     delete forest[i];
-    // }
     cout << "Total loss is " << loss;
     return predictions;
 }
@@ -92,7 +85,7 @@ int main()
     GBDT gbdt_model(0.1, 50, 3); // 参数对应为lr，iterations，maximum height
     gbdt_model.fit(training_set);
 
-    /* data所指内容已经在split_features_labels函数中被delete，但data本身仍存在 */
+    /* data所指内存已经在split_features_labels函数中被delete，但data本身仍存在 */
     data = LoadData("bikeSpeedVsIq_test.txt"); 
     FeaturesLabels test_set = split_features_labels(data);
     gbdt_model.predict(test_set);

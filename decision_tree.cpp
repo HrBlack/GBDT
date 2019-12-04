@@ -3,7 +3,6 @@
 
 using namespace std;
     
-// void DecisionTree::build_tree(DecisionTree* tree, FeaturesLabels& dataset)
 void DecisionTree::build_tree(shared_ptr<DecisionTree> tree, FeaturesLabels& dataset)
 {
     Data features = dataset.features;
@@ -25,22 +24,24 @@ void DecisionTree::build_tree(shared_ptr<DecisionTree> tree, FeaturesLabels& dat
     Data& features_2 = new_dataset.dataset_2.features;
     vector<float> labels_2 = new_dataset.dataset_2.labels;
 
+    // 此处因为是在类/函数内定义变量，必须要分配动态内存。下面两行是不用智能指针的写法，但new需和delete配合。
     // tree -> left = new DecisionTree(tree -> height + 1);
     // tree -> right = new DecisionTree(tree -> height + 1);
+
+    // 利用智能指针后，需要将类/函数的接口也都统一一下。
     tree -> left = make_shared<DecisionTree>(tree -> height + 1);
     tree -> right = make_shared<DecisionTree>(tree -> height + 1);
 
     build_tree(tree -> left, new_dataset.dataset_1);
     build_tree(tree -> right, new_dataset.dataset_2);
-    // build_tree(ptr_tree_left, new_dataset.dataset_1);
-    // build_tree(ptr_tree_right, new_dataset.dataset_2);
     return;
 }
 
-// SplitResults DecisionTree::choose_best_feature(DecisionTree* tree, Data& features, vector<float>& labels){
 SplitResults DecisionTree::choose_best_feature(shared_ptr<DecisionTree> tree, Data& features, vector<float>& labels){
 
     SplitResults result;
+
+    // 先判断下数据集是否已经完全同化
     bool flag = true;
     float value = labels.front();
     for (size_t i=0; i < features.size(); ++i)
@@ -129,7 +130,6 @@ float DecisionTree::compute_loss(Data& features, vector<float>& labels){
     return loss;
 }
 
-// float DecisionTree::predict(DecisionTree* tree, vector<float>& example)
 float DecisionTree::predict(shared_ptr<DecisionTree> tree, vector<float>& example)
 {
     if (tree -> is_leaf == true || tree -> split_feature == -1)
@@ -146,7 +146,7 @@ float DecisionTree::predict(shared_ptr<DecisionTree> tree, vector<float>& exampl
     }
 }
 
-// DecisionTree的单独测试方法：
+// DecisionTree的单独使用与测试方法：
 // int main()
 // {
 //     Data* data = LoadData("/Users/liushihao/Desktop/搜索引擎基础/GBDT/bikeSpeedVsIq_train.txt");

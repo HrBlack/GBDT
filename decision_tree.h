@@ -25,8 +25,6 @@ class SplitData
 class DecisionTree
 {
     public:
-    // DecisionTree *left = NULL;
-    // DecisionTree *right = NULL;
     std::shared_ptr<DecisionTree> left;
     std::shared_ptr<DecisionTree> right;
 
@@ -47,10 +45,8 @@ class DecisionTree
                  ):
                  height(h), maximum_height(max_h), is_leaf(is_leaf), split_feature(feature), split_value(value), threshold(t) {};
     
-    // void build_tree(DecisionTree* tree, FeaturesLabels& dataset);
     void build_tree(std::shared_ptr<DecisionTree> tree, FeaturesLabels& dataset);
 
-    // SplitResults choose_best_feature(DecisionTree* tree, Data& features, std::vector<float>& labels);
     SplitResults choose_best_feature(std::shared_ptr<DecisionTree> tree, Data& features, std::vector<float>& labels);
 
     SplitData split_dataset(Data& features, std::vector<float>& labels, int f_index, float value);
@@ -59,9 +55,7 @@ class DecisionTree
 
     float compute_loss(Data& features, std::vector<float>& labels);
 
-    // float predict(DecisionTree* tree, std::vector<float>& data);
     float predict(std::shared_ptr<DecisionTree> tree, std::vector<float>& data);
-
 };
 
 #endif
