@@ -1,11 +1,13 @@
+#include<vector>
+
 #include "data.h"
 
-Data LoadData(const char* input_file)
+Data* LoadData(const char* input_file)
 {
-    Data data;
-    string tmp_line;
-    ifstream inputs;
-    vector<float> row_data;
+    Data* data = new Data;
+    std::string tmp_line;
+    std::ifstream inputs;
+    std::vector<float> row_data;
     float val;
     inputs.open(input_file); // 这里的形参input_file必须是指针
     while (!inputs.eof())
@@ -15,19 +17,29 @@ Data LoadData(const char* input_file)
         {
             return data;
         }
-        stringstream input_line(tmp_line);
+        std::stringstream input_line(tmp_line);
         while (input_line >> val)
         {
             row_data.push_back(val);
         }
-        data.push_back(row_data);
+        data -> push_back(row_data);
         row_data.clear();
     }
     inputs.close();
     return data;
 }
 
-// int main()
-// {
-//     Data dataset = LoadData("bikeSpeedVsIq_train.txt");
-// }
+FeaturesLabels split_features_labels(Data* data)
+{
+    FeaturesLabels features_labels;
+    std::vector<float> tmp_vec((*data)[0].size() - 1);
+    for (size_t i = 0; i < (*data).size(); ++i)
+    {
+        tmp_vec.assign((*data)[i].begin(), (*data)[i].end() - 1);
+        features_labels.features.push_back(tmp_vec);
+        features_labels.labels.push_back((*data)[i].back());
+        tmp_vec.clear();
+    }
+    delete data;
+    return features_labels;
+}

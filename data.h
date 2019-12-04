@@ -6,10 +6,18 @@
 #include<fstream>
 #include<sstream>
 
-using namespace std;
+typedef std::vector<std::vector<float>> Data;
 
-typedef vector<vector<float>> Data;
+class FeaturesLabels
+{
+    public:
+    Data features;
+    std::vector<float> labels;
+};
 
-Data LoadData(const char* input_file);
+
+Data* LoadData(const char* input_file);
+
+FeaturesLabels split_features_labels(Data* data);
 
 #endif
