@@ -5,19 +5,10 @@ Tree-Based Regression Methods
 '''
 
 import numpy as np
-import argparse
-from sklearn.datasets import load_boston
-from sklearn.model_selection import train_test_split
-
-parser = argparse.ArgumentParser()
-parser.add_argument('-maximum_height', default=3, type=int)
-parser.add_argument('-tree_mode', default='cart_regression', type=str)
-
-args = parser.parse_args()
 
 class DecisionTree:
     def __init__(self, is_leaf=False, left=None, right=None, height=1, split_feature=-1,
-                 split_value=0, leaf_nums=0, threshold=0):
+                 split_value=0, leaf_nums=0, threshold=0, maximum_height=10):
         self.left = left
         self.right = right
         self.height = height
@@ -26,6 +17,7 @@ class DecisionTree:
         self.split_value = split_value
         self.leaf_nums = leaf_nums
         self.threshold = threshold
+        self.maximum_height = maximum_height
 
     def build_tree(self, tree, dataset):
         if len(dataset) == 0:
@@ -48,17 +40,17 @@ class DecisionTree:
         return dataset_1, dataset_2
 
     def choose_best_feature(self, tree, dataset):
-        if len(set(dataset[:, -1])) <= 2 or tree.height >= args.maximum_height:
+        if len(set(dataset[:, -1])) <= 2 or tree.height >= tree.maximum_height:
             tree.is_leaf = True
             return None, np.mean(dataset[:, -1])
         maximum_gain = 0
         feature_nums = len(dataset[0]) - 1 # 最后一列默认为label
-        loss = self.compute_loss(dataset, args.tree_mode)
+        loss = self.compute_loss(dataset)
         for f in range(feature_nums):
             for val in dataset[:, f]:
                 dataset_1, dataset_2 = self.split_dataset(dataset, f, val)
-                loss_1 = self.compute_loss(dataset_1, args.tree_mode)
-                loss_2 = self.compute_loss(dataset_2, args.tree_mode)
+                loss_1 = self.compute_loss(dataset_1)
+                loss_2 = self.compute_loss(dataset_2)
                 new_loss = loss_1 + loss_2
                 gain = loss - new_loss
                 if gain < tree.threshold:
@@ -72,9 +64,9 @@ class DecisionTree:
         else:
             return best_split_feature, split_value
 
-    def compute_loss(self, dataset, mode):
-        if mode == 'cart_regression':
-            return  np.var(dataset[:, -1]) * dataset.shape[0]
+    def compute_loss(self, dataset):
+         # cart_regression
+        return  np.var(dataset[:, -1]) * dataset.shape[0]
 
     def predict(self, tree, feature):
         if tree.is_leaf:
@@ -105,39 +97,32 @@ class Data:
         return dataset
 
 if __name__ == '__main__':
-    # data = Data('./bikeSpeedVsIq_train.txt')
-    # training_set = data.load_file()
-    # cart = DecisionTree()
-    # cart.build_tree(cart, training_set)
-
-    # # cart.tree_illustration(cart)
-
-    # data = Data('./bikeSpeedVsIq_test.txt')
-    # test_set = data.load_file()
-    # loss = 0
-    # for example in test_set:
-    #     prediction = cart.predict(cart, example)
-    #     loss += (prediction - example[-1]) ** 2
-
-    # print("模型在test_set上的最终MSE值为{:.2f}".format(loss))
-
-    data = load_boston()
-    X_train, X_test, y_train, y_test = train_test_split(data["data"],data["target"],test_size=0.3, random_state=0)
-
+    data = Data('./bikeSpeedVsIq_train.txt')
+    training_set = data.load_file()
     cart = DecisionTree()
+    cart.build_tree(cart, training_set)
 
-    # training_set = data.load_file()
-    # gbdt.fit(training_set)
-    data = np.concatenate((X_train, y_train[:, None]), axis=1)
-    cart.build_tree(cart, data)
+    # cart.tree_illustration(cart)
 
-    # data = Data('./bikeSpeedVsIq_test.txt')
-    # test_set = data.load_file()
-    data = np.concatenate((X_test, y_test[:, None]), axis=1)
-    # gbdt.predict(test_set)
+    data = Data('./bikeSpeedVsIq_test.txt')
+    test_set = data.load_file()
     loss = 0
-    for example in data:
+    for example in test_set:
         prediction = cart.predict(cart, example)
         loss += (prediction - example[-1]) ** 2
+
     print("模型在test_set上的最终MSE值为{:.2f}".format(loss))
+
+    # 波士顿房价预测
+    # data = load_boston()
+    # X_train, X_test, y_train, y_test = train_test_split(data["data"],data["target"],test_size=0.3, random_state=0)
+    # cart = DecisionTree()
+    # data = np.concatenate((X_train, y_train[:, None]), axis=1)
+    # cart.build_tree(cart, data)
+    # data = np.concatenate((X_test, y_test[:, None]), axis=1)
+    # loss = 0
+    # for example in data:
+    #     prediction = cart.predict(cart, example)
+    #     loss += (prediction - example[-1]) ** 2
+    # print("模型在test_set上的最终MSE值为{:.2f}".format(loss))
     
