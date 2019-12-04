@@ -1,5 +1,3 @@
-#include<vector>
-
 #include "data.h"
 
 Data* LoadData(const char* input_file)

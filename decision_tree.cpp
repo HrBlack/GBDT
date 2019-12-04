@@ -1,14 +1,10 @@
-#include<iostream>
-#include<vector>
-#include<cmath>
-#include<unordered_set>
-
 #include "data.h"
 #include "decision_tree.h"
 
 using namespace std;
     
-void DecisionTree::build_tree(DecisionTree* tree, FeaturesLabels dataset)
+// void DecisionTree::build_tree(DecisionTree* tree, FeaturesLabels& dataset)
+void DecisionTree::build_tree(shared_ptr<DecisionTree> tree, FeaturesLabels& dataset)
 {
     Data features = dataset.features;
     vector<float> labels = dataset.labels;
@@ -29,15 +25,21 @@ void DecisionTree::build_tree(DecisionTree* tree, FeaturesLabels dataset)
     Data& features_2 = new_dataset.dataset_2.features;
     vector<float> labels_2 = new_dataset.dataset_2.labels;
 
-    tree -> left = new DecisionTree(tree -> height + 1);
-    tree -> right = new DecisionTree(tree -> height + 1);
+    // tree -> left = new DecisionTree(tree -> height + 1);
+    // tree -> right = new DecisionTree(tree -> height + 1);
+    tree -> left = make_shared<DecisionTree>(tree -> height + 1);
+    tree -> right = make_shared<DecisionTree>(tree -> height + 1);
 
     build_tree(tree -> left, new_dataset.dataset_1);
     build_tree(tree -> right, new_dataset.dataset_2);
+    // build_tree(ptr_tree_left, new_dataset.dataset_1);
+    // build_tree(ptr_tree_right, new_dataset.dataset_2);
     return;
 }
 
-SplitResults DecisionTree::choose_best_feature(DecisionTree* tree, Data& features, vector<float> labels){
+// SplitResults DecisionTree::choose_best_feature(DecisionTree* tree, Data& features, vector<float>& labels){
+SplitResults DecisionTree::choose_best_feature(shared_ptr<DecisionTree> tree, Data& features, vector<float>& labels){
+
     SplitResults result;
     bool flag = true;
     float value = labels.front();
@@ -90,7 +92,7 @@ SplitResults DecisionTree::choose_best_feature(DecisionTree* tree, Data& feature
     return result;
 }
 
-SplitData DecisionTree::split_dataset(Data& features, vector<float> labels, int f_index, float value){
+SplitData DecisionTree::split_dataset(Data& features, vector<float>& labels, int f_index, float value){
     SplitData new_dataset;
     for (size_t i = 0; i < features.size(); ++i)
     {
@@ -108,7 +110,7 @@ SplitData DecisionTree::split_dataset(Data& features, vector<float> labels, int 
     return new_dataset;
 }
 
-float DecisionTree::compute_mean(vector<float> labels){
+float DecisionTree::compute_mean(vector<float>& labels){
     float total = 0;
     for (size_t i = 0; i < labels.size(); ++i)
     {
@@ -117,7 +119,7 @@ float DecisionTree::compute_mean(vector<float> labels){
     return total / labels.size();
 }
 
-float DecisionTree::compute_loss(Data& features, vector<float> labels){
+float DecisionTree::compute_loss(Data& features, vector<float>& labels){
     float loss = 0;
     float mean = compute_mean(labels);
     for (size_t i = 0; i < features.size(); ++i)
@@ -127,7 +129,8 @@ float DecisionTree::compute_loss(Data& features, vector<float> labels){
     return loss;
 }
 
-float DecisionTree::predict(DecisionTree* tree, vector<float>& example)
+// float DecisionTree::predict(DecisionTree* tree, vector<float>& example)
+float DecisionTree::predict(shared_ptr<DecisionTree> tree, vector<float>& example)
 {
     if (tree -> is_leaf == true || tree -> split_feature == -1)
     {
@@ -143,21 +146,22 @@ float DecisionTree::predict(DecisionTree* tree, vector<float>& example)
     }
 }
 
-int main()
-{
-    Data* data = LoadData("/Users/liushihao/Desktop/搜索引擎基础/GBDT/bikeSpeedVsIq_train.txt");
-    FeaturesLabels training_set = split_features_labels(data);
-    DecisionTree tree;
-    tree.build_tree(&tree, training_set);
+// DecisionTree的单独测试方法：
+// int main()
+// {
+//     Data* data = LoadData("/Users/liushihao/Desktop/搜索引擎基础/GBDT/bikeSpeedVsIq_train.txt");
+//     FeaturesLabels training_set = split_features_labels(data);
+//     DecisionTree tree;
+//     tree.build_tree(&tree, training_set);
 
-    Data* test_set = LoadData("/Users/liushihao/Desktop/搜索引擎基础/GBDT/bikeSpeedVsIq_test.txt");
-    float loss = 0;
-    for (size_t i = 0; i < (*test_set).size(); ++i)
-    {   
-        float prediction = tree.predict(&tree, (*test_set)[i]);
-        loss += pow((prediction - (*test_set)[i].back()), 2); 
-        cout << (*test_set)[i].back() << '\t' << prediction << endl;
-    }
-    cout << "loss is " << loss;
-    return 0;
-}
+//     Data* test_set = LoadData("/Users/liushihao/Desktop/搜索引擎基础/GBDT/bikeSpeedVsIq_test.txt");
+//     float loss = 0;
+//     for (size_t i = 0; i < (*test_set).size(); ++i)
+//     {   
+//         float prediction = tree.predict(&tree, (*test_set)[i]);
+//         loss += pow((prediction - (*test_set)[i].back()), 2); 
+//         cout << (*test_set)[i].back() << '\t' << prediction << endl;
+//     }
+//     cout << "loss is " << loss;
+//     return 0;
+// }

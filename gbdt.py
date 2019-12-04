@@ -12,6 +12,9 @@ from decision_tree import DecisionTree, Data
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-maximum_height', default=3, type=int)
+parser.add_argument('-iterations', default=20, type=int)
+parser.add_argument('-lr', default=0.5, type=float)
+
 args = parser.parse_args()
 
 logging.basicConfig(level = logging.INFO,format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -56,7 +59,7 @@ if __name__ == '__main__':
     # 训练
     data = Data('bikeSpeedVsIq_train.txt')
     training_set = data.load_file()
-    gbdt = GBDT(lr=0.3, iterations=80, maximum_height=args.maximum_height)
+    gbdt = GBDT(lr=args.lr, iterations=args.iterations, maximum_height=args.maximum_height)
     gbdt.fit(training_set)
 
     # 预测

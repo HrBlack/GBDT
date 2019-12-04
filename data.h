@@ -13,8 +13,8 @@ class FeaturesLabels
     public:
     Data features;
     std::vector<float> labels;
+    size_t size = features.size();
 };
-
 
 Data* LoadData(const char* input_file);
 
