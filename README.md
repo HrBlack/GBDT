@@ -1,6 +1,6 @@
 # GBDT🌲
 A version of GBDT implementation in python and C++.
-基于弱分类起CART实现，其中decision_tree.py可单独使用CART树。
+基于弱分类器CART实现，其中decision_tree.py可单独使用CART树。
 
 ## 回归问题
 当前可用loss仅为Squared Error，同时也是最常用的。
